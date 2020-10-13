@@ -1,0 +1,11 @@
+﻿  main.cpp
+D:\CAD1\Project1\Project1\main.cpp(31,31): warning C4018: '<': signed/unsigned 不相符
+D:\CAD1\Project1\Project1\main.cpp(53,31): warning C4018: '<': signed/unsigned 不相符
+D:\CAD1\Project1\Project1\main.cpp(147,27): warning C4018: '<': signed/unsigned 不相符
+D:\CAD1\Project1\Project1\main.cpp(160,31): warning C4018: '<': signed/unsigned 不相符
+D:\CAD1\Project1\Project1\main.cpp(214): warning C4715: 'graph::readBlif': 不是所有控制路徑都傳回值
+D:\CAD1\Project1\Project1\main.cpp(42): error C4716: 'graph::printPredecessor': 必須傳回值
+D:\CAD1\Project1\Project1\main.cpp(64): error C4716: 'graph::printSuccessor': 必須傳回值
+D:\CAD1\Project1\Project1\main.cpp(93): warning C4715: 'graph::addSuccessor': 不是所有控制路徑都傳回值
+D:\CAD1\Project1\Project1\main.cpp(111): warning C4715: 'graph::addPredecessor': 不是所有控制路徑都傳回值
+D:\CAD1\Project1\Project1\main.cpp(117): error C4716: 'graph::createNode': 必須傳回值
