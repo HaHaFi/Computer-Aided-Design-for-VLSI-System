@@ -29,9 +29,10 @@ public:
 	vector<int> predecessor_Index;
 	vector<int> successor_Index;
 	int Index=0;
-	char aoiType=0;	//AOI TYPE and=1 or=2 NOT=3
-	int ASAPINT;
-	int ALAPINT;
+	char aoiType=-1;	//AOI TYPE and=0 or=1 NOT=2
+	int ASAPINT=0;
+	int ALAPINT=0;
+	int SLACK=0;
 };
 
 class graph
@@ -43,6 +44,95 @@ public:
 		modelName = "";
 		inputNodes.clear();
 		outputNodes.clear();
+	}
+	void Process(int time)
+	{
+		IndexAble();
+		ASAP_Scheduling();
+		ALAP_Scheduling(time);
+		SLACK_Process();
+	}
+	void ML_RCS(int time)
+	{
+		vector<int>resource;
+		resource.resize(3, 0);
+		vector<node>ready[3];
+		vector<node>copyNodes = nodes;
+		map<int,int>checkTable;
+		for (auto i = inputNodes.begin(); i != inputNodes.end(); i++)
+		{
+			checkTable[findNode(*i)] = 1;
+			for (auto j = copyNodes.begin(); j != copyNodes.end(); j++)
+			{
+				copyNodes.erase(j);
+			}
+			//ready[nodes[findNode(*i)].aoiType].push_back(nodes[findNode(*i)]);
+		}
+
+
+		int l = 1;
+		for (;;l++)
+		{
+			for (auto i = copyNodes.begin(); i != copyNodes.end();)
+			{
+				bool check = true;
+				for (auto j = i->predecessor_Index.begin(); j != i->predecessor_Index.end(); j++)
+				{
+					if (checkTable[*j] != 1)
+					{
+						check = false;
+						break;
+					}
+				}
+				if (check)
+				{
+					ready[i->aoiType].push_back(*i);
+					i = copyNodes.erase(i);
+					continue;
+				}
+				i++;
+			}
+			//And Or I 
+			int type = 0;
+			for (auto i=resource.begin();i!=resource.end();i++)
+			{
+				for (int j = 0; j < *i; j++)
+				{
+					//to do the selection of the ready
+					if (ready[type].size()> 0)
+					{
+						
+						checkTable[ready[type].begin()->Index] = 1;
+						ready[type].erase(ready[type].begin());
+					}
+				}
+				type++;
+			}
+
+			if (ready[0].size() == 0 && ready[2].size() == 0 && ready[1].size() == 0)
+				break;
+
+		}
+
+	}
+	void MR_LCS()
+	{
+		vector<int>resource;
+		resource.resize(3, 0);
+		for (;;)
+		{
+			for (;;)
+			{
+
+			}
+		}
+	}
+	void SLACK_Process()
+	{
+		for (auto i = nodes.begin(); i != nodes.end(); i++)
+		{
+			i->SLACK = i->ALAPINT - i->ASAPINT;
+		}
 	}
 	void ASAP_Scheduling()
 	{
@@ -65,7 +155,57 @@ public:
 
 		for (int i = 1;; i++)
 		{
+			vector<int> putToTable;
 			for (auto j = copyNodes.begin(); j != copyNodes.end(); )
+			{
+				bool check = true;
+				for (auto l = j->predecessor_Index.begin(); l != j->predecessor_Index.end(); l++)
+				{
+					if (checkTable[*l] != 1)
+					{
+						check = false;
+						break;
+					}
+				}
+				if (check)
+				{
+					//checkTable[j->Index] = 1;
+					putToTable.push_back(j->Index);
+					nodes[j->Index].ASAPINT = i;
+					j=copyNodes.erase(j);
+					continue;
+				}
+				j++;
+			}
+			if (copyNodes.size() == 0)
+				break;
+			for (auto k = putToTable.begin(); k != putToTable.end(); k++)
+				checkTable[*k] = 1;
+		}
+	}
+	bool ALAP_Scheduling(int time)
+	{
+		map<int, int> checkTable;
+		vector<node> copyNodes = this->nodes;
+		for (auto i = this->outputNodes.begin(); i != this->outputNodes.end(); i++)
+		{
+			int index = this->findNode(*i);
+			nodes[index].ALAPINT = time;
+			checkTable[index] = 1;
+			for (auto j = copyNodes.begin(); j != copyNodes.end(); j++)
+			{
+				if (j->name == *i)
+				{
+					copyNodes.erase(j);
+					break;
+				}
+			}
+		}
+		int i = time;
+		for (i = time-1;; i--)
+		{
+			vector<int>putToTable;
+			for (auto j = copyNodes.begin(); j != copyNodes.end();)
 			{
 				bool check = true;
 				for (auto l = j->successor_Index.begin(); l != j->successor_Index.end(); l++)
@@ -78,20 +218,27 @@ public:
 				}
 				if (check)
 				{
-					checkTable[j->Index] = 1;
-					j->ASAPINT = i;
-					copyNodes.erase(j);
+					//checkTable[j->Index] = 1;
+					putToTable.push_back(j->Index);
+					nodes[j->Index].ALAPINT = i;
+					j=copyNodes.erase(j);
 					continue;
 				}
 				j++;
 			}
 			if (copyNodes.size() == 0)
 				break;
+			for (auto k = putToTable.begin(); k != putToTable.end(); k++)
+				checkTable[*k] = 1;
 		}
-	}
-	void ALAP_Scheduling()
-	{
-
+		if (i < 0)
+		{
+			return false;
+		}
+		else
+		{
+			return true;
+		}
 
 	}
 	void IndexAble()
@@ -122,7 +269,7 @@ public:
 		{
 			if (i->booleanFunction.size() > 0)
 			{
-				i->aoiType = 1;
+				i->aoiType = 0;
 				outFile << i->name;
 				if (!i->booleanFunctionType[0])
 				{
@@ -134,12 +281,12 @@ public:
 					outFile << i->booleanFunction[j];
 					if (i->booleanFunction.size() == 1 && i->booleanFunction[0][i->booleanFunction[0].size()-1]=='\'')
 					{
-						i->aoiType = 3;
+						i->aoiType = 2;
 					}
 					if (j + 1 < i->booleanFunction.size())
 					{
 						outFile << " +";
-						i->aoiType = 2;
+						i->aoiType = 1;
 					}
 				}
 				outFile << endl;
@@ -147,6 +294,12 @@ public:
 		}
 		outFile << "END";
 		outFile.close();
+		fstream SlackFile("Slack.out", ios::out);
+		for (auto i = nodes.begin(); i != nodes.end(); i++)
+		{
+			SlackFile << i->name << " Slack = " << i->SLACK <<" ASAP = "<<i->ASAPINT <<" ALAP = "<<i->ALAPINT<< endl;
+		}
+		SlackFile.close();
 		return true;
 	}
 	int printPredecessor(string targetNode)
@@ -234,12 +387,12 @@ public:
 		addNode.predecessor.push_back(targetBoolName);
 		return true;
 	}
-	node* createNode(string nodeName)
+	void createNode(string nodeName)
 	{
 		node tempNode;
 		tempNode.name = nodeName;
 		this->nodes.push_back(tempNode);
-		return &this->nodes[this->nodes.size() - 1];
+		//return &this->nodes[this->nodes.size() - 1];
 	}
 	void print_all_Address()
 	{
@@ -385,6 +538,7 @@ int main(int argc, char* argv[])
 	{
 		return -1;
 	}
+	boolGraph.Process(3);
 	boolGraph.write_Output_File("aoi_sample01.blif");
 	string command;
 	while (true)

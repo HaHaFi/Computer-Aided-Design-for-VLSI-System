@@ -1,10 +1,9 @@
 ﻿  main.cpp
-D:\Computer-Aided-Design-for-VLSI-System\HW2\CAD_HW2\main.cpp(13,2): warning C4094: 未標記的 'class' 宣告沒有符號
-D:\Computer-Aided-Design-for-VLSI-System\HW2\CAD_HW2\main.cpp(59,23): warning C4018: '<': signed/unsigned 不相符
-D:\Computer-Aided-Design-for-VLSI-System\HW2\CAD_HW2\main.cpp(66,16): warning C4018: '<': signed/unsigned 不相符
-D:\Computer-Aided-Design-for-VLSI-System\HW2\CAD_HW2\main.cpp(89,22): warning C4018: '<': signed/unsigned 不相符
-D:\Computer-Aided-Design-for-VLSI-System\HW2\CAD_HW2\main.cpp(113,22): warning C4018: '<': signed/unsigned 不相符
-D:\Computer-Aided-Design-for-VLSI-System\HW2\CAD_HW2\main.cpp(173,21): warning C4018: '<': signed/unsigned 不相符
-D:\Computer-Aided-Design-for-VLSI-System\HW2\CAD_HW2\main.cpp(224,23): warning C4018: '<': signed/unsigned 不相符
-D:\Computer-Aided-Design-for-VLSI-System\HW2\CAD_HW2\main.cpp(236,24): warning C4018: '<': signed/unsigned 不相符
-  CAD_HW2.vcxproj -> D:\Computer-Aided-Design-for-VLSI-System\HW2\Debug\CAD_HW2.exe
+D:\Project_C++\Computer-Aided-Design-for-VLSI-System\HW2\CAD_HW2\main.cpp(195,23): warning C4018: '<': signed/unsigned 不相符
+D:\Project_C++\Computer-Aided-Design-for-VLSI-System\HW2\CAD_HW2\main.cpp(202,16): warning C4018: '<': signed/unsigned 不相符
+D:\Project_C++\Computer-Aided-Design-for-VLSI-System\HW2\CAD_HW2\main.cpp(231,22): warning C4018: '<': signed/unsigned 不相符
+D:\Project_C++\Computer-Aided-Design-for-VLSI-System\HW2\CAD_HW2\main.cpp(255,22): warning C4018: '<': signed/unsigned 不相符
+D:\Project_C++\Computer-Aided-Design-for-VLSI-System\HW2\CAD_HW2\main.cpp(315,21): warning C4018: '<': signed/unsigned 不相符
+D:\Project_C++\Computer-Aided-Design-for-VLSI-System\HW2\CAD_HW2\main.cpp(366,23): warning C4018: '<': signed/unsigned 不相符
+D:\Project_C++\Computer-Aided-Design-for-VLSI-System\HW2\CAD_HW2\main.cpp(378,24): warning C4018: '<': signed/unsigned 不相符
+  CAD_HW2.vcxproj -> D:\Project_C++\Computer-Aided-Design-for-VLSI-System\HW2\Debug\CAD_HW2.exe
