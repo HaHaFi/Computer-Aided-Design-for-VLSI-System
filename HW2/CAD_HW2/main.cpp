@@ -55,13 +55,18 @@ public:
 	}
 	bool Process(const int& argc,const vector<string>& argv)
 	{
+		for (auto i = argv.begin(); i != argv.end(); i++)
+		{
+			//cout << *i << endl;
+		}
 		if (argc < 3)
 		{
 			return false;
 		}
+		readBlif(argv[2]);
 		write_Output_File(argv[2]);
 		IndexAble();
-		if (argv[1] == "-r")
+		if (argv[1] == "-l")
 		{
 			if (argc < 4)
 			{
@@ -69,7 +74,7 @@ public:
 			}
 			printVector(MR_LCS(stoi(argv[3])));
 		}
-		else if (argv[1] == "-l")
+		else if (argv[1] == "-r")
 		{
 			if (argc < 6)
 			{
@@ -319,8 +324,6 @@ public:
 		processText.push_back("#OR: " + to_string(*(++resource.begin())));
 		processText.push_back("#NOT: " + to_string(*(++++resource.begin())));
 		processText.push_back("END");
-		for (auto i = processText.begin(); i != processText.end(); i++)
-			cout << *i << endl;
 		return processText;
 	}
 	void SLACK_Process()
