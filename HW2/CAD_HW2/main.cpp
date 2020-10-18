@@ -6,7 +6,14 @@
 #include<algorithm>
 #include<map>
 using namespace std;
-
+void printVector( vector<string> Text)
+{
+	for (auto i = Text.begin(); i != Text.end(); i++)
+	{
+		cout << *i << endl;
+	}
+	return;
+}
 
 class node
 {
@@ -33,6 +40,7 @@ public:
 	int ASAPINT=0;
 	int ALAPINT=0;
 	int SLACK=0;
+	int NowSlack = 0;
 };
 
 class graph
@@ -45,34 +53,98 @@ public:
 		inputNodes.clear();
 		outputNodes.clear();
 	}
-	void Process(int time)
+	bool Process(const int& argc,const vector<string>& argv)
 	{
+		if (argc < 3)
+		{
+			return false;
+		}
+		write_Output_File(argv[2]);
 		IndexAble();
-		ASAP_Scheduling();
-		ALAP_Scheduling(time);
-		SLACK_Process();
+		if (argv[1] == "-r")
+		{
+			if (argc < 4)
+			{
+				return false;
+			}
+			printVector(MR_LCS(stoi(argv[3])));
+		}
+		else if (argv[1] == "-l")
+		{
+			if (argc < 6)
+			{
+				return false;
+			}
+			printVector(ML_RCS(stoi(argv[3]), stoi(argv[4]), stoi(argv[5])));
+		}
+		
+		
 	}
-	void ML_RCS(int time)
+	vector<string> ML_RCS(int AND, int OR, int NOT)
 	{
+		ASAP_Scheduling();
+		ALAP_Scheduling(100000);
+		SLACK_Process();
+		vector<string> processText;
+		processText.push_back("Resource-constrained Scheduling");
 		vector<int>resource;
 		resource.resize(3, 0);
+		*resource.begin() = AND;
+		*(++resource.begin()) = NOT;
+		*(++++resource.begin()) = OR;
 		vector<node>ready[3];
-		vector<node>copyNodes = nodes;
-		map<int,int>checkTable;
+		vector<node>copyNodes = this->nodes;
+		map<int, int>checkTable;
 		for (auto i = inputNodes.begin(); i != inputNodes.end(); i++)
 		{
 			checkTable[findNode(*i)] = 1;
 			for (auto j = copyNodes.begin(); j != copyNodes.end(); j++)
 			{
 				copyNodes.erase(j);
+				break;
 			}
 			//ready[nodes[findNode(*i)].aoiType].push_back(nodes[findNode(*i)]);
+		}
+		if (AND == 0)
+		{
+			for (auto j = copyNodes.begin(); j != copyNodes.end(); j++)
+			{
+				if (j->aoiType == 0)
+				{
+					processText.push_back("No feasible solution.\nEND");
+					return processText;
+				}
+			}
+		}
+		if (OR == 0)
+		{
+			for (auto j = copyNodes.begin(); j != copyNodes.end(); j++)
+			{
+				if (j->aoiType == 1)
+				{
+					processText.push_back("No feasible solution.\nEND");
+					return processText;
+				}
+			}
+		}
+		if (NOT == 0)
+		{
+			for (auto j = copyNodes.begin(); j != copyNodes.end(); j++)
+			{
+				if (j->aoiType == 2)
+				{
+					processText.push_back("No feasible solution.\nEND");
+					return processText;
+				}
+			}
 		}
 
 
 		int l = 1;
 		for (;;l++)
 		{
+			string Text = "";
+			Text = to_string(l)+": ";
 			for (auto i = copyNodes.begin(); i != copyNodes.end();)
 			{
 				bool check = true;
@@ -92,40 +164,164 @@ public:
 				}
 				i++;
 			}
+			if (ready[0].size() == 0 && ready[2].size() == 0 && ready[1].size() == 0)
+				break;
 			//And Or I 
 			int type = 0;
 			for (auto i=resource.begin();i!=resource.end();i++)
 			{
+				Text += "{";
 				for (int j = 0; j < *i; j++)
 				{
+					sort(ready[type].begin(), ready[type].end(), [&](const node& a, const node& b) {return a.SLACK < b.SLACK; });
 					//to do the selection of the ready
 					if (ready[type].size()> 0)
 					{
-						
+						j == 0 ? Text += ready[type].begin()->name : Text += " " + ready[type].begin()->name;
 						checkTable[ready[type].begin()->Index] = 1;
+
 						ready[type].erase(ready[type].begin());
 					}
 				}
 				type++;
+				Text += "} ";
+				
 			}
-
-			if (ready[0].size() == 0 && ready[2].size() == 0 && ready[1].size() == 0)
-				break;
+			processText.push_back(Text);
+			
 
 		}
 
+		
+		processText.push_back("#AND: " + to_string(*resource.begin()));
+		processText.push_back("#OR: " + to_string(*(++resource.begin())));
+		processText.push_back("#NOT: " + to_string(*(++++resource.begin())));
+		processText.push_back("END");
+		return processText;
 	}
-	void MR_LCS()
+	vector<string> MR_LCS(int time)
 	{
+		vector<string>processText;
+		processText.push_back("Latency - constrained Scheduling");
+		ASAP_Scheduling();
+		bool valid=ALAP_Scheduling(time);
+		if (!valid)
+		{
+			processText.push_back("No feasible solution.\nEND");
+			return processText;
+		}
+		SLACK_Process();
 		vector<int>resource;
 		resource.resize(3, 0);
+		
+		vector<node>copyNodes = this->nodes;
+		map<int, int>checkTable;
+		for (auto i = inputNodes.begin(); i != inputNodes.end(); i++)
+		{
+			checkTable[findNode(*i)] = 1;
+			for (auto j = copyNodes.begin(); j != copyNodes.end(); j++)
+			{
+				copyNodes.erase(j);
+				break;
+			}
+			//ready[nodes[findNode(*i)].aoiType].push_back(nodes[findNode(*i)]);
+		}
+		map<int, int>backup_checkTable = checkTable;
+		vector<node>backup_CopyNodes = copyNodes;
 		for (;;)
 		{
-			for (;;)
+			int l = 1;
+			string Text = "";
+			checkTable = backup_checkTable;
+			copyNodes = backup_CopyNodes;
+			vector<node>ready[3];
+			for (;; l++)
 			{
+				
+				for (auto i = copyNodes.begin(); i != copyNodes.end();)
+				{
+					bool check = true;
+					for (auto j = i->predecessor_Index.begin(); j != i->predecessor_Index.end(); j++)
+					{
+						if (checkTable[*j] != 1)
+						{
+							check = false;
+							break;
+						}
+					}
+					if (check)
+					{
+						ready[i->aoiType].push_back(*i);
+						i = copyNodes.erase(i);
+						continue;
+					}
+					i++;
+				}
+				//check done
+				if (ready[0].size() == 0 && ready[2].size() == 0 && ready[1].size() == 0)
+					break;
 
+				//check if need resource
+				int requireResource = -1;
+				for (int i = 0; i <= 2; i++)
+				{
+					for (auto j = ready[i].begin(); j != ready[i].end(); j++)
+					{
+						j->NowSlack = j->ASAPINT + j->SLACK - l;
+						if (j->NowSlack < 0)
+						{
+							requireResource = i;
+							break;
+						}
+					}
+				}
+				Text += to_string(l) + ": ";
+				//add resource
+				if (requireResource != -1)
+				{
+					resource[requireResource]++;
+					l = -1;
+					break;
+				}
+
+				//And Or I 
+				int type = 0;
+				for (auto i = resource.begin(); i != resource.end(); i++)
+				{
+					Text += "{";
+					for (int j = 0; j < *i; j++)
+					{
+						sort(ready[type].begin(), ready[type].end(), [&](const node& a, const node& b) {return a.NowSlack < b.NowSlack; });
+						//to do the selection of the ready
+						if (ready[type].size() > 0)
+						{
+							j == 0 ? Text += ready[type].begin()->name : Text += " " + ready[type].begin()->name;
+							checkTable[ready[type].begin()->Index] = 1;
+
+							ready[type].erase(ready[type].begin());
+						}
+					}
+					type++;
+					Text += "} ";
+
+				}
+				Text += l==time?"":"\n";
+				//processText.push_back(Text);
+			}
+			if (l !=-1)
+			{
+				processText.push_back(Text);
+				break;
 			}
 		}
+
+		processText.push_back("#AND: " + to_string(*resource.begin()));
+		processText.push_back("#OR: " + to_string(*(++resource.begin())));
+		processText.push_back("#NOT: " + to_string(*(++++resource.begin())));
+		processText.push_back("END");
+		for (auto i = processText.begin(); i != processText.end(); i++)
+			cout << *i << endl;
+		return processText;
 	}
 	void SLACK_Process()
 	{
@@ -530,16 +726,13 @@ private:
 int main(int argc, char* argv[])
 {
 	graph boolGraph;
-	if (argc < 2)
+	vector<string>argvName;
+	for (int i = 0; i < argc; i++)
 	{
-		cout << "please input the Blif file";
+		argvName.push_back(argv[i]);
 	}
-	if (!boolGraph.readBlif("aoi_sample01.blif"))
-	{
-		return -1;
-	}
-	boolGraph.Process(3);
-	boolGraph.write_Output_File("aoi_sample01.blif");
+	boolGraph.Process(argc,argvName);
+	
 	string command;
 	while (true)
 	{
