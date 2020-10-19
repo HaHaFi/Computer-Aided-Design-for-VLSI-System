@@ -6,11 +6,20 @@
 #include<algorithm>
 #include<map>
 using namespace std;
-void printVector( vector<string> Text)
+void printVector( vector<string> Text,bool writefile=false)
 {
 	for (auto i = Text.begin(); i != Text.end(); i++)
 	{
 		cout << *i << endl;
+	}
+	if (writefile)
+	{
+		fstream outFile("a.out", ios::out);
+		for (auto i = Text.begin(); i != Text.end(); i++)
+		{
+			outFile << *i << endl;
+		}
+		outFile.close();
 	}
 	return;
 }
@@ -26,13 +35,12 @@ public:
 		predecessor.clear();
 		predecessor_Index.clear();
 		successor_Index.clear();
-		successor.clear();
 	}
 	string name;
 	vector<string> booleanFunction;
-	vector<bool> booleanFunctionType;
 	vector<string> predecessor;
 	vector<string> successor;
+	vector<bool> booleanFunctionType;
 	vector<int> predecessor_Index;
 	vector<int> successor_Index;
 	int Index=0;
@@ -41,6 +49,7 @@ public:
 	int ALAPINT=0;
 	int SLACK=0;
 	int NowSlack = 0;
+	bool used = false;
 };
 
 class graph
@@ -55,64 +64,69 @@ public:
 	}
 	bool Process(const int& argc,const vector<string>& argv)
 	{
-		for (auto i = argv.begin(); i != argv.end(); i++)
-		{
-			//cout << *i << endl;
-		}
 		if (argc < 3)
 		{
 			return false;
 		}
 		readBlif(argv[2]);
-		write_Output_File(argv[2]);
 		IndexAble();
+		write_Output_File(argv[2]);
+		
 		if (argv[1] == "-l")
 		{
 			if (argc < 4)
 			{
+				cout << "invalid input\n";
 				return false;
 			}
-			printVector(MR_LCS(stoi(argv[3])));
+			printVector(MR_LCS(stoi(argv[3])), true);
 		}
 		else if (argv[1] == "-r")
 		{
 			if (argc < 6)
 			{
+				cout << "invalid input\n";
 				return false;
 			}
-			printVector(ML_RCS(stoi(argv[3]), stoi(argv[4]), stoi(argv[5])));
+			printVector(ML_RCS(stoi(argv[3]), stoi(argv[4]), stoi(argv[5])), true);
 		}
+
 		
+		return true;
 		
 	}
 	vector<string> ML_RCS(int AND, int OR, int NOT)
 	{
 		ASAP_Scheduling();
-		ALAP_Scheduling(100000);
+		ALAP_Scheduling();
 		SLACK_Process();
 		vector<string> processText;
 		processText.push_back("Resource-constrained Scheduling");
 		vector<int>resource;
 		resource.resize(3, 0);
 		*resource.begin() = AND;
-		*(++resource.begin()) = NOT;
-		*(++++resource.begin()) = OR;
-		vector<node>ready[3];
-		vector<node>copyNodes = this->nodes;
+		*(++resource.begin()) = OR;
+		*(++++resource.begin()) = NOT;
+		vector<int>ready[3];
+		//vector<node>copyNodes = this->nodes;
 		map<int, int>checkTable;
 		for (auto i = inputNodes.begin(); i != inputNodes.end(); i++)
 		{
-			checkTable[findNode(*i)] = 1;
-			for (auto j = copyNodes.begin(); j != copyNodes.end(); j++)
+			//checkTable[findNode(*i)] = 1;
+			for (auto j = nodes.begin(); j != nodes.end(); j++)
 			{
-				copyNodes.erase(j);
-				break;
+				if (*i == j->name)
+				{
+					checkTable[j->Index] = 1;
+					j->used = true;
+					break;
+				}
 			}
 			//ready[nodes[findNode(*i)].aoiType].push_back(nodes[findNode(*i)]);
 		}
 		if (AND == 0)
 		{
-			for (auto j = copyNodes.begin(); j != copyNodes.end(); j++)
+			for (auto j = nodes.begin(); j != nodes.end(); j++)
 			{
 				if (j->aoiType == 0)
 				{
@@ -123,7 +137,7 @@ public:
 		}
 		if (OR == 0)
 		{
-			for (auto j = copyNodes.begin(); j != copyNodes.end(); j++)
+			for (auto j = nodes.begin(); j != nodes.end(); j++)
 			{
 				if (j->aoiType == 1)
 				{
@@ -134,7 +148,7 @@ public:
 		}
 		if (NOT == 0)
 		{
-			for (auto j = copyNodes.begin(); j != copyNodes.end(); j++)
+			for (auto j = nodes.begin(); j != nodes.end(); j++)
 			{
 				if (j->aoiType == 2)
 				{
@@ -150,9 +164,14 @@ public:
 		{
 			string Text = "";
 			Text = to_string(l)+": ";
-			for (auto i = copyNodes.begin(); i != copyNodes.end();)
+			for (auto i = nodes.begin(); i != nodes.end();i++)
 			{
+				if (i->used == true)
+				{
+					continue;
+				}
 				bool check = true;
+
 				for (auto j = i->predecessor_Index.begin(); j != i->predecessor_Index.end(); j++)
 				{
 					if (checkTable[*j] != 1)
@@ -163,14 +182,28 @@ public:
 				}
 				if (check)
 				{
-					ready[i->aoiType].push_back(*i);
-					i = copyNodes.erase(i);
+					ready[i->aoiType].push_back(i->Index);
+					i->used = true;
+					//i = copyNodes.erase(i);
 					continue;
 				}
-				i++;
+				
 			}
+
+			
+
 			if (ready[0].size() == 0 && ready[2].size() == 0 && ready[1].size() == 0)
 				break;
+
+			for (int i = 0; i <= 2; i++)
+			{
+				for (auto j = ready[i].begin(); j != ready[i].end(); j++)
+				{
+					this->nodes[*j].NowSlack = this->nodes[*j].ASAPINT + this->nodes[*j].SLACK - l;
+				}
+				sort(ready[i].begin(), ready[i].end(), [&](const int& a, const int& b) {return this->nodes[a].NowSlack < this->nodes[b].NowSlack; });
+			}
+
 			//And Or I 
 			int type = 0;
 			for (auto i=resource.begin();i!=resource.end();i++)
@@ -178,12 +211,12 @@ public:
 				Text += "{";
 				for (int j = 0; j < *i; j++)
 				{
-					sort(ready[type].begin(), ready[type].end(), [&](const node& a, const node& b) {return a.SLACK < b.SLACK; });
+					//sort(ready[type].begin(), ready[type].end(), [&](const node& a, const node& b) {return a.SLACK < b.SLACK; });
 					//to do the selection of the ready
 					if (ready[type].size()> 0)
 					{
-						j == 0 ? Text += ready[type].begin()->name : Text += " " + ready[type].begin()->name;
-						checkTable[ready[type].begin()->Index] = 1;
+						j == 0 ? Text += this->nodes[*ready[type].begin()].name : Text += " " + this->nodes[*ready[type].begin()].name;
+						checkTable[*ready[type].begin()] = 1;
 
 						ready[type].erase(ready[type].begin());
 					}
@@ -208,43 +241,53 @@ public:
 	{
 		vector<string>processText;
 		processText.push_back("Latency - constrained Scheduling");
+		//cout << "Latency - constrained Scheduling";
 		ASAP_Scheduling();
-		bool valid=ALAP_Scheduling(time);
+		bool valid = ALAP_Scheduling(time);
+		SLACK_Process();
 		if (!valid)
 		{
 			processText.push_back("No feasible solution.\nEND");
 			return processText;
 		}
-		SLACK_Process();
 		vector<int>resource;
 		resource.resize(3, 0);
 		
-		vector<node>copyNodes = this->nodes;
 		map<int, int>checkTable;
+
 		for (auto i = inputNodes.begin(); i != inputNodes.end(); i++)
 		{
-			checkTable[findNode(*i)] = 1;
-			for (auto j = copyNodes.begin(); j != copyNodes.end(); j++)
+			//checkTable[findNode(*i)] = 1;
+			for (auto j = nodes.begin(); j != nodes.end(); j++)
 			{
-				copyNodes.erase(j);
-				break;
+				if (*i == j->name)
+				{
+					checkTable[j->Index] = 1;
+					j->used = true;
+					break;
+				}
 			}
-			//ready[nodes[findNode(*i)].aoiType].push_back(nodes[findNode(*i)]);
 		}
-		map<int, int>backup_checkTable = checkTable;
-		vector<node>backup_CopyNodes = copyNodes;
+
+		//map<int, int>backup_checkTable = checkTable;
 		for (;;)
 		{
 			int l = 1;
 			string Text = "";
-			checkTable = backup_checkTable;
-			copyNodes = backup_CopyNodes;
-			vector<node>ready[3];
+			//checkTable.clear();
+			//checkTable = backup_checkTable;
+			//copyNodes = backup_CopyNodes;
+			vector<int>ready[3];
 			for (;; l++)
 			{
 				
-				for (auto i = copyNodes.begin(); i != copyNodes.end();)
+				for (auto i = nodes.begin(); i != nodes.end(); i++)
 				{
+					if (i->used)
+					{
+						continue;
+					}
+
 					bool check = true;
 					for (auto j = i->predecessor_Index.begin(); j != i->predecessor_Index.end(); j++)
 					{
@@ -256,11 +299,11 @@ public:
 					}
 					if (check)
 					{
-						ready[i->aoiType].push_back(*i);
-						i = copyNodes.erase(i);
-						continue;
+						ready[i->aoiType].push_back(i->Index);
+						i->used = true;
+						//i = copyNodes.erase(i);
 					}
-					i++;
+					//i++;
 				}
 				//check done
 				if (ready[0].size() == 0 && ready[2].size() == 0 && ready[1].size() == 0)
@@ -272,9 +315,10 @@ public:
 				{
 					for (auto j = ready[i].begin(); j != ready[i].end(); j++)
 					{
-						j->NowSlack = j->ASAPINT + j->SLACK - l;
-						if (j->NowSlack < 0)
+						this->nodes[*j].NowSlack = this->nodes[*j].ASAPINT + this->nodes[*j].SLACK - l;
+						if (this->nodes[*j].NowSlack < 0)
 						{
+							//resource[i]++;
 							requireResource = i;
 							break;
 						}
@@ -296,13 +340,12 @@ public:
 					Text += "{";
 					for (int j = 0; j < *i; j++)
 					{
-						sort(ready[type].begin(), ready[type].end(), [&](const node& a, const node& b) {return a.NowSlack < b.NowSlack; });
+						sort(ready[type].begin(), ready[type].end(), [&](const int& a, const int& b) {return nodes[a].NowSlack < nodes[b].NowSlack; });
 						//to do the selection of the ready
 						if (ready[type].size() > 0)
 						{
-							j == 0 ? Text += ready[type].begin()->name : Text += " " + ready[type].begin()->name;
-							checkTable[ready[type].begin()->Index] = 1;
-
+							j == 0 ? Text += nodes[*ready[type].begin()].name : Text += " " + nodes[*ready[type].begin()].name;
+							checkTable[nodes[*ready[type].begin()].Index] = 1;
 							ready[type].erase(ready[type].begin());
 						}
 					}
@@ -311,12 +354,32 @@ public:
 
 				}
 				Text += l==time?"":"\n";
-				//processText.push_back(Text);
+				//Text = "";
 			}
 			if (l !=-1)
 			{
 				processText.push_back(Text);
 				break;
+			}
+
+			checkTable.clear();
+			for (auto jC = nodes.begin(); jC != nodes.end(); jC++)
+			{
+					jC->used = false;
+			}
+			for (auto iC = inputNodes.begin(); iC != inputNodes.end(); iC++)
+			{
+				//checkTable[findNode(*i)] = 1;
+				for (auto jC = nodes.begin(); jC != nodes.end(); jC++)
+				{
+					if (*iC == jC->name)
+					{
+						checkTable[jC->Index] = 1;
+						jC->used = true;
+						break;
+					}
+				}
+				//ready[nodes[findNode(*i)].aoiType].push_back(nodes[findNode(*i)]);
 			}
 		}
 
@@ -336,17 +399,18 @@ public:
 	void ASAP_Scheduling()
 	{
 		map<int, int> checkTable;
-		vector<node> copyNodes=this->nodes;
+		int count = 0;
 		for (auto i = this->inputNodes.begin();i!=this->inputNodes.end();i++)
 		{
-			int index = this->findNode(*i);
-			nodes[index].ASAPINT = 0;
-			checkTable[index] = 1;
-			for (auto j = copyNodes.begin(); j != copyNodes.end(); j++)
+			for (auto j = nodes.begin(); j != nodes.end(); j++)
 			{
 				if (j->name == *i)
 				{
-					copyNodes.erase(j);
+					int index = j->Index;
+					nodes[index].ASAPINT = 0;
+					checkTable[index] = 1;
+					j->used=true;
+					count++;
 					break;
 				}
 			}
@@ -355,8 +419,13 @@ public:
 		for (int i = 1;; i++)
 		{
 			vector<int> putToTable;
-			for (auto j = copyNodes.begin(); j != copyNodes.end(); )
+			for (auto j = nodes.begin(); j !=nodes.end();j++ )
 			{
+				
+				if (j->used)
+				{
+					continue;
+				}
 				bool check = true;
 				for (auto l = j->predecessor_Index.begin(); l != j->predecessor_Index.end(); l++)
 				{
@@ -371,31 +440,37 @@ public:
 					//checkTable[j->Index] = 1;
 					putToTable.push_back(j->Index);
 					nodes[j->Index].ASAPINT = i;
-					j=copyNodes.erase(j);
+					j->used = true;
+					count++;
 					continue;
 				}
-				j++;
+				
 			}
-			if (copyNodes.size() == 0)
+			if (count == nodes.size())
+			{
+				for (auto it = nodes.begin(); it != nodes.end(); it++)
+					it->used = false;
 				break;
+			}
 			for (auto k = putToTable.begin(); k != putToTable.end(); k++)
 				checkTable[*k] = 1;
 		}
 	}
-	bool ALAP_Scheduling(int time)
+	bool ALAP_Scheduling(int time = 0)
 	{
 		map<int, int> checkTable;
-		vector<node> copyNodes = this->nodes;
+		int count = 0;
 		for (auto i = this->outputNodes.begin(); i != this->outputNodes.end(); i++)
 		{
-			int index = this->findNode(*i);
-			nodes[index].ALAPINT = time;
-			checkTable[index] = 1;
-			for (auto j = copyNodes.begin(); j != copyNodes.end(); j++)
+			for (auto j = nodes.begin(); j != nodes.end(); j++)
 			{
 				if (j->name == *i)
 				{
-					copyNodes.erase(j);
+					int index = j->Index;
+					nodes[index].ALAPINT = time;
+					checkTable[index] = 1;
+					j->used = true;
+					count++;
 					break;
 				}
 			}
@@ -404,8 +479,11 @@ public:
 		for (i = time-1;; i--)
 		{
 			vector<int>putToTable;
-			for (auto j = copyNodes.begin(); j != copyNodes.end();)
+			for (auto j = nodes.begin(); j != nodes.end();j++)
 			{
+
+				if (j->used)
+					continue;
 				bool check = true;
 				for (auto l = j->successor_Index.begin(); l != j->successor_Index.end(); l++)
 				{
@@ -420,18 +498,28 @@ public:
 					//checkTable[j->Index] = 1;
 					putToTable.push_back(j->Index);
 					nodes[j->Index].ALAPINT = i;
-					j=copyNodes.erase(j);
+					j->used = true;
+					count++;
+					//j=copyNodes.erase(j);
 					continue;
 				}
-				j++;
 			}
-			if (copyNodes.size() == 0)
+			if (count == nodes.size())
+			{
+				for (auto it = nodes.begin(); it != nodes.end(); it++)
+					it->used = false;
 				break;
+			}
 			for (auto k = putToTable.begin(); k != putToTable.end(); k++)
 				checkTable[*k] = 1;
 		}
+
 		if (i < 0)
 		{
+			for (auto j = nodes.begin(); j != nodes.end(); j++)
+			{
+				j->ALAPINT -= (i);
+			}
 			return false;
 		}
 		else
@@ -442,7 +530,7 @@ public:
 	}
 	void IndexAble()
 	{
-		sort(nodes.begin(), nodes.end(), [&](const node a, const node b) {return a.name < b.name; });
+		sort(nodes.begin(), nodes.end(), [&](const node& a, const node& b) {return a.name < b.name; });
 		int count = 0;
 		for (vector<node>::iterator i = nodes.begin(); i != nodes.end(); i++)
 		{
@@ -463,7 +551,6 @@ public:
 	{
 		fstream outFile("function.out", ios::out);
 		outFile << "Node function:" << endl;
-		sort(nodes.begin(), nodes.end(), [&](const node a, const node b) {return a.name < b.name; });
 		for (vector<node>::iterator i = nodes.begin(); i != nodes.end(); i++)
 		{
 			if (i->booleanFunction.size() > 0)
@@ -493,12 +580,21 @@ public:
 		}
 		outFile << "END";
 		outFile.close();
+
 		fstream SlackFile("Slack.out", ios::out);
+		ASAP_Scheduling();
+		ALAP_Scheduling();
+		SLACK_Process();
 		for (auto i = nodes.begin(); i != nodes.end(); i++)
 		{
 			SlackFile << i->name << " Slack = " << i->SLACK <<" ASAP = "<<i->ASAPINT <<" ALAP = "<<i->ALAPINT<< endl;
+			//i->successor.clear();
+			//i->booleanFunctionType.clear();
+			//i->booleanFunction.clear();
+			//i->predecessor.clear();
 		}
 		SlackFile.close();
+		
 		return true;
 	}
 	int printPredecessor(string targetNode)
@@ -736,7 +832,7 @@ int main(int argc, char* argv[])
 	}
 	boolGraph.Process(argc,argvName);
 	
-	string command;
+	/*string command;
 	while (true)
 	{
 		cout << "Please input a node: ";
@@ -753,6 +849,6 @@ int main(int argc, char* argv[])
 
 		boolGraph.printPredecessor(command);
 		boolGraph.printSuccessor(command);
-	}
+	}*/
 	return 0;
 }

@@ -1,13 +1,14 @@
 ﻿  main.cpp
-D:\Project_C++\Computer-Aided-Design-for-VLSI-System\HW2\CAD_HW2\main.cpp(195,23): warning C4018: '<': signed/unsigned 不相符
-D:\Project_C++\Computer-Aided-Design-for-VLSI-System\HW2\CAD_HW2\main.cpp(202,16): warning C4018: '<': signed/unsigned 不相符
-D:\Project_C++\Computer-Aided-Design-for-VLSI-System\HW2\CAD_HW2\main.cpp(231,22): warning C4018: '<': signed/unsigned 不相符
-D:\Project_C++\Computer-Aided-Design-for-VLSI-System\HW2\CAD_HW2\main.cpp(255,22): warning C4018: '<': signed/unsigned 不相符
-D:\Project_C++\Computer-Aided-Design-for-VLSI-System\HW2\CAD_HW2\main.cpp(315,21): warning C4018: '<': signed/unsigned 不相符
-D:\Project_C++\Computer-Aided-Design-for-VLSI-System\HW2\CAD_HW2\main.cpp(366,23): warning C4018: '<': signed/unsigned 不相符
-D:\Project_C++\Computer-Aided-Design-for-VLSI-System\HW2\CAD_HW2\main.cpp(378,24): warning C4018: '<': signed/unsigned 不相符
+D:\Computer-Aided-Design-for-VLSI-System\HW2\CAD_HW2\main.cpp(496,23): warning C4018: '<': signed/unsigned 不相符
+D:\Computer-Aided-Design-for-VLSI-System\HW2\CAD_HW2\main.cpp(503,16): warning C4018: '<': signed/unsigned 不相符
+D:\Computer-Aided-Design-for-VLSI-System\HW2\CAD_HW2\main.cpp(532,22): warning C4018: '<': signed/unsigned 不相符
+D:\Computer-Aided-Design-for-VLSI-System\HW2\CAD_HW2\main.cpp(556,22): warning C4018: '<': signed/unsigned 不相符
+D:\Computer-Aided-Design-for-VLSI-System\HW2\CAD_HW2\main.cpp(616,21): warning C4018: '<': signed/unsigned 不相符
+D:\Computer-Aided-Design-for-VLSI-System\HW2\CAD_HW2\main.cpp(667,23): warning C4018: '<': signed/unsigned 不相符
+D:\Computer-Aided-Design-for-VLSI-System\HW2\CAD_HW2\main.cpp(679,24): warning C4018: '<': signed/unsigned 不相符
   正在產生程式碼
-  Previous IPDB not found, fall back to full compilation.
-  All 721 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  45 of 865 functions ( 5.2%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    36 functions had inline decision re-evaluated but remain unchanged
   已完成程式碼產生
-  CAD_HW2.vcxproj -> D:\Project_C++\Computer-Aided-Design-for-VLSI-System\HW2\Release\CAD_HW2.exe
+  CAD_HW2.vcxproj -> D:\Computer-Aided-Design-for-VLSI-System\HW2\Release\CAD_HW2.exe
